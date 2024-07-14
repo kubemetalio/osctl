@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+_output/
+bin/
+log/
+cover.out
+docs/swagger.*
