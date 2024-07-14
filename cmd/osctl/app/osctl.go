@@ -4,12 +4,12 @@ import (
 	"flag"
 	"fmt"
 
-	"github.com/huweihuang/osctl/pkg/osctl/cmd/disk"
-
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/version/verflag"
+
+	"github.com/huweihuang/osctl/pkg/osctl/cmd/disk"
 )
 
 func NewOSCtlCommand() *cobra.Command {

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-
 	"k8s.io/klog/v2"
 
+	"github.com/huweihuang/osctl/pkg/osctl/types"
 	"github.com/huweihuang/osctl/pkg/util"
 )
 
@@ -18,7 +18,7 @@ func (o *DiskOptions) InitRootDisk() error {
 	klog.V(4).Info("init root disk begin")
 
 	// rootDisk like sda
-	rootDisk, rootNum, err := GetRootDeviceNameAndNum(&o.Template.Raids[0])
+	rootDisk, rootNum, err := getRootDeviceNameAndNum(&o.Template.Raids[0])
 	if err != nil {
 		return errors.Wrapf(err, "Failed to get root device name and number")
 	}
@@ -200,6 +200,71 @@ func (o *DiskOptions) handleNbdDevice(rootDevice string) error {
 	// umount image root
 	_, err = util.RunCommand("qemu-nbd --disconnect /dev/nbd0")
 	return nil
+}
+
+// getRootDeviceNameAndNum get the device name like sda
+func getRootDeviceNameAndNum(raid *types.Raid) (string, int, error) {
+	rootSize := getRootSize(raid)
+	rootDevice, err := getRootDeviceAttribute(rootSize)
+	if err != nil {
+		return "", 0, err
+	}
+	deviceName, num, err := splitDeviceName(rootDevice.Name)
+	if err != nil {
+		return "", 0, err
+	}
+	return deviceName, num, nil
+}
+
+// getRootDeviceAttribute determine the root partition by finding the partition with the label 'root'.
+// If none is found, then look for the partition whose size is greater than 5GB and whose file system type is not 'swap'.
+func getRootDeviceAttribute(size int64) (*Device, error) {
+	rootDevice, err := getDiskDeviceBySize(size)
+	if err != nil {
+		return nil, err
+	}
+	if len(rootDevice.Children) == 0 {
+		return nil, errors.New("no root disk detected")
+	}
+
+	// find the partition with the label 'root'
+	for _, part := range rootDevice.Children {
+		if part.Label == "root" {
+			return &part, nil
+		}
+	}
+
+	// find which size > 5G and fstype != swap
+	for _, part := range rootDevice.Children {
+		if part.Size > 5*1024*1024*1024 && part.FStype != "swap" {
+			return &part, nil
+		}
+	}
+
+	return nil, errors.New("no root disk detected")
+}
+
+func getRootSize(raid *types.Raid) int64 {
+	raidMultiplier := getRaidMultiplier(raid.RaidLevel, raid.RaidMembers)
+	return ToBytes(raid.DiskSize) * raidMultiplier
+}
+
+// getRaidMultiplier returns the multiplier based on the RAID level
+func getRaidMultiplier(raidLevel string, raidMembers int64) int64 {
+	switch raidLevel {
+	case "noRaid", "R1":
+		return 1
+	case "R0":
+		return raidMembers
+	case "R3", "R5":
+		return raidMembers - 1
+	case "R6":
+		return raidMembers - 2
+	case "R10":
+		return raidMembers / 2
+	default:
+		return 1
+	}
 }
 
 func makeFS(fsType string, device string) error {

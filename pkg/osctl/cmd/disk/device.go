@@ -10,7 +10,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/huweihuang/osctl/pkg/osctl/types"
 	"github.com/huweihuang/osctl/pkg/util"
 )
 
@@ -34,8 +33,8 @@ type Device struct {
 	Rota       bool   `json:"rota"` // rotational, true: HDD, false: SSD
 }
 
-// getDiskDevices execute command lsblk to get disk device
-func getDiskDevices(device string) ([]BlockDevice, error) {
+// listDiskDevices execute command lsblk to get disk device
+func listDiskDevices(device string) ([]BlockDevice, error) {
 	var block BlockDevices
 	cmd := fmt.Sprintf("lsblk -J -b -o NAME,LABEL,SIZE,FSTYPE,UUID,TYPE,MOUNTPOINT,ROTA")
 	if device != "" {
@@ -53,7 +52,7 @@ func getDiskDevices(device string) ([]BlockDevice, error) {
 
 	disks := make([]BlockDevice, 0)
 	for _, device := range block.BlockDevices {
-		if device.Type == "disk" {
+		if device.Type == "disk" && device.Size != 0 {
 			disks = append(disks, device)
 		}
 	}
@@ -64,18 +63,22 @@ func getDiskDevices(device string) ([]BlockDevice, error) {
 	return disks, nil
 }
 
-// GetRootDeviceNameAndNum get the device name like sda
-func GetRootDeviceNameAndNum(raid *types.Raid) (string, int, error) {
-	rootSize := getRootSize(raid)
-	rootDevice, err := getRootDeviceAttribute(rootSize)
+func getDiskDeviceBySize(size int64) (*BlockDevice, error) {
+	disks, err := listDiskDevices("")
 	if err != nil {
-		return "", 0, err
+		return nil, err
 	}
-	deviceName, num, err := splitDeviceName(rootDevice.Name)
-	if err != nil {
-		return "", 0, err
+	for _, disk := range disks {
+		if isDiskSizeEqual(disk.Size, size) {
+			return &disk, nil
+		}
 	}
-	return deviceName, num, nil
+	for _, disk := range disks {
+		if disk.Size > 0 {
+			return &disk, nil
+		}
+	}
+	return nil, errors.Errorf("no disk detected: %v", disks)
 }
 
 func getDeviceNumber(deviceName string) (int, error) {
@@ -98,87 +101,19 @@ func splitDeviceName(deviceName string) (string, int, error) {
 }
 
 // nvme0n1 + 1 => nvme0n1p1; sda + 1 => sda1
-func mergeDeviceName(rootDisk string, num int) string {
-	if strings.HasPrefix(rootDisk, "nvme") || strings.HasPrefix(rootDisk, "nbd") {
-		return fmt.Sprintf("%sp%d", rootDisk, num)
+func mergeDeviceName(deviceName string, num int) string {
+	if strings.HasPrefix(deviceName, "nvme") || strings.HasPrefix(deviceName, "nbd") {
+		return fmt.Sprintf("%sp%d", deviceName, num)
 	}
-	return fmt.Sprintf("%s%d", rootDisk, num)
+	return fmt.Sprintf("%s%d", deviceName, num)
 }
 
+// sdb => /dev/sdb
 func getDeviceFullName(deviceName string) string {
 	return fmt.Sprintf("/dev/%s", deviceName)
-}
-
-// getRootDeviceAttribute determine the root partition by finding the partition with the label 'root'.
-// If none is found, then look for the partition whose size is greater than 5GB and whose file system type is not 'swap'.
-func getRootDeviceAttribute(size int64) (*Device, error) {
-	rootDevice, err := getRootParentDevice(size)
-	if err != nil {
-		return nil, err
-	}
-	if len(rootDevice.Children) == 0 {
-		return nil, errors.New("no root disk detected")
-	}
-
-	// find the partition with the label 'root'
-	for _, part := range rootDevice.Children {
-		if part.Label == "root" {
-			return &part, nil
-		}
-	}
-
-	// find which size > 5G and fstype != swap
-	for _, part := range rootDevice.Children {
-		if part.Size > 5*1024*1024*1024 && part.FStype != "swap" {
-			return &part, nil
-		}
-	}
-
-	return nil, errors.New("no root disk detected")
-}
-
-func getRootParentDevice(size int64) (*BlockDevice, error) {
-	disks, err := getDiskDevices("")
-	if err != nil {
-		return nil, err
-	}
-	for _, disk := range disks {
-		if isDiskSizeEqual(disk.Size, size) {
-			return &disk, nil
-		}
-	}
-	for _, disk := range disks {
-		if disk.Size > 0 {
-			return &disk, nil
-		}
-	}
-	return nil, errors.Errorf("no disk detected: %v", disks)
 }
 
 func isDiskSizeEqual(first, second int64) bool {
 	difference := math.Abs(float64(first - second))
 	return (difference / float64(first)) < 0.05
-}
-
-func getRootSize(raid *types.Raid) int64 {
-	raidMultiplier := getRaidMultiplier(raid.RaidLevel, raid.RaidMembers)
-	return ToBytes(raid.DiskSize) * raidMultiplier
-}
-
-// getRaidMultiplier returns the multiplier based on the RAID level
-func getRaidMultiplier(raidLevel string, raidMembers int64) int64 {
-	switch raidLevel {
-	case "noRaid", "R1":
-		return 1
-	case "R0":
-		return raidMembers
-	case "R3", "R5":
-		return raidMembers - 1
-	case "R6":
-		return raidMembers - 2
-	case "R10":
-		return raidMembers / 2
-	default:
-		return 1
-	}
 }

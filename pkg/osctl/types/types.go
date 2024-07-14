@@ -2,15 +2,14 @@ package types
 
 // Template
 //
-//	dataDisk:
-//	- /data
+// dataDisk:
+//   - /data
 //
 // sysDisk:
-//
-//	/: 100G
-//	/boot: 2G
-//	/data: rest
-//	NOSWAP: "true"
+// /: 100G
+// /boot: 2G
+// /data: rest
+// NOSWAP: "true"
 //
 // raid:
 //   - diskSize: 1.2T
