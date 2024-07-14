@@ -26,14 +26,14 @@ func NewDiskOptions() *DiskOptions {
 }
 
 func (o *DiskOptions) AddFlags(fs *pflag.FlagSet) {
-	fs.StringVar(&o.DiskType, "type", RootDiskType, "disk type: root disk or data disk")
+	fs.StringVar(&o.DiskType, "type", "", "disk type: root disk or data disk")
 	fs.StringVar(&o.FileSystemType, "file-system", FileSystemTypeEXT4, "file system type")
 	fs.StringVar(&o.OSIImageFile, "image", "osi.qcow2", "osi image file name")
 }
 
-func (o *DiskOptions) Validate() field.ErrorList {
+func (o *DiskOptions) Validate() error {
 	allErrs := field.ErrorList{}
-	return allErrs
+	return allErrs.ToAggregate()
 }
 
 func (o *DiskOptions) Complete() (err error) {

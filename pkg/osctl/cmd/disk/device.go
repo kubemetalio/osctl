@@ -100,9 +100,9 @@ func splitDeviceName(deviceName string) (string, int, error) {
 	return matches[1], num, nil
 }
 
-// nvme0n1 + 1 => nvme0n1p1; sda + 1 => sda1
+// /dev/nvme0n1 + 1 => /dev/nvme0n1p1; /dev/sda + 1 => /dev/sda1
 func mergeDeviceName(deviceName string, num int) string {
-	if strings.HasPrefix(deviceName, "nvme") || strings.HasPrefix(deviceName, "nbd") {
+	if strings.Contains(deviceName, "nvme") || strings.Contains(deviceName, "nbd") {
 		return fmt.Sprintf("%sp%d", deviceName, num)
 	}
 	return fmt.Sprintf("%s%d", deviceName, num)

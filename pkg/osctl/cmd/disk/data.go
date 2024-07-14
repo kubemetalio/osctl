@@ -33,12 +33,12 @@ func (o *DiskOptions) listDataDiskDeviceName() ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	rootDisk, _, err := getRootDeviceNameAndNum(&o.Template.Raids[0])
+	rootDeviceName, _, err := getRootDeviceNameAndNum(&o.Template.Raids[0])
 	if err != nil {
 		return nil, errors.Wrapf(err, "Failed to get root device name and number")
 	}
 	for _, disk := range disks {
-		if disk.Name != rootDisk && !strings.HasPrefix(disk.Name, "nbd") {
+		if disk.Name != rootDeviceName && !strings.HasPrefix(disk.Name, "nbd") {
 			data = append(data, getDeviceFullName(disk.Name))
 		}
 	}

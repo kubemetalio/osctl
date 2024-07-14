@@ -20,16 +20,16 @@ func NewInitCmd() *cobra.Command {
 		Use:   "init",
 		Short: "init root disk and data disk",
 		Run: func(cmd *cobra.Command, _ []string) {
-			if errs := option.Validate(); len(errs) != 0 {
-				klog.Errorf("init option is invalid: %s", errs.ToAggregate())
+			if err := option.Validate(); err != nil {
+				klog.Errorf("init option is invalid: %w", err)
 				return
 			}
 			if err := option.Complete(); err != nil {
-				klog.Errorf("fail to complete the init option: %s", err)
+				klog.Errorf("fail to complete the init option: %w", err)
 				return
 			}
 			if err := option.RunInit(); err != nil {
-				klog.Errorf("fail to init disk: %s", err)
+				klog.Errorf("fail to init disk: %w", err)
 				return
 			}
 		},
@@ -43,13 +43,18 @@ func NewInitCmd() *cobra.Command {
 func (o *DiskOptions) RunInit() error {
 	switch o.DiskType {
 	case RootDiskType:
-		err := o.InitRootDisk()
-		if err != nil {
+		if err := o.InitRootDisk(); err != nil {
 			return err
 		}
 	case DataDiskType:
-		err := o.InitDataDisk()
-		if err != nil {
+		if err := o.InitDataDisk(); err != nil {
+			return err
+		}
+	default:
+		if err := o.InitRootDisk(); err != nil {
+			return err
+		}
+		if err := o.InitDataDisk(); err != nil {
 			return err
 		}
 	}
