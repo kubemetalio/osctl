@@ -10,6 +10,7 @@ import (
 	"k8s.io/component-base/version/verflag"
 
 	"github.com/huweihuang/osctl/pkg/osctl/cmd/disk"
+	"github.com/huweihuang/osctl/pkg/osctl/cmd/raid"
 )
 
 func NewOSCtlCommand() *cobra.Command {
@@ -25,6 +26,7 @@ func NewOSCtlCommand() *cobra.Command {
 
 	// raid, disk, network,
 	cmds.AddCommand(disk.DiskCmd)
+	cmds.AddCommand(raid.RaidCmd)
 
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 	pflag.Set("logtostderr", "false")
