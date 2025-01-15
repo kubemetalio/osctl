@@ -5,7 +5,7 @@ import (
 
 	"k8s.io/component-base/logs"
 
-	"github.com/huweihuang/osctl/cmd/osctl/app"
+	"github.com/kubemetalio/osctl/cmd/osctl/app"
 )
 
 const (

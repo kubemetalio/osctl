@@ -9,8 +9,8 @@ import (
 	cliflag "k8s.io/component-base/cli/flag"
 	"k8s.io/component-base/version/verflag"
 
-	"github.com/huweihuang/osctl/pkg/osctl/cmd/disk"
-	"github.com/huweihuang/osctl/pkg/osctl/cmd/raid"
+	"github.com/kubemetalio/osctl/pkg/osctl/cmd/disk"
+	"github.com/kubemetalio/osctl/pkg/osctl/cmd/raid"
 )
 
 func NewOSCtlCommand() *cobra.Command {

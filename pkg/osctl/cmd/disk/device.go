@@ -10,7 +10,7 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/huweihuang/osctl/pkg/util"
+	"github.com/kubemetalio/osctl/pkg/util"
 )
 
 type BlockDevices struct {

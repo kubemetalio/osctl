@@ -1,4 +1,4 @@
-module github.com/huweihuang/osctl
+module github.com/kubemetalio/osctl
 
 go 1.22.5
 
