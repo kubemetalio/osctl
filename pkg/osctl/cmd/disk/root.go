@@ -8,8 +8,8 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
 
-	"github.com/huweihuang/osctl/pkg/osctl/types"
-	"github.com/huweihuang/osctl/pkg/util"
+	"github.com/kubemetalio/osctl/pkg/osctl/types"
+	"github.com/kubemetalio/osctl/pkg/util"
 )
 
 const nbd0Device = "/dev/nbd0"

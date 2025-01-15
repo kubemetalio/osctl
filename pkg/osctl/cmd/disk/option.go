@@ -1,9 +1,10 @@
 package disk
 
 import (
-	"github.com/huweihuang/osctl/pkg/osctl/types"
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/validation/field"
+
+	"github.com/kubemetalio/osctl/pkg/osctl/types"
 )
 
 const (

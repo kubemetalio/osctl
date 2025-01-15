@@ -4,7 +4,7 @@ import (
 	"github.com/spf13/pflag"
 	"k8s.io/apimachinery/pkg/util/validation/field"
 
-	"github.com/huweihuang/osctl/pkg/osctl/types"
+	"github.com/kubemetalio/osctl/pkg/osctl/types"
 )
 
 type RaidOptions struct {

@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 	"k8s.io/klog/v2"
 
-	"github.com/huweihuang/osctl/pkg/util"
+	"github.com/kubemetalio/osctl/pkg/util"
 )
 
 func (o *DiskOptions) InitDataDisk() error {
